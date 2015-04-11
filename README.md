@@ -11,6 +11,6 @@ This is a journal made with [Meteor](https://www.meteor.com/) and
 
 View the demo [here](http://meteorjournal.meteor.com/)
 
-##Coming features
+###Coming features
 * Login (user will see only their journal entries)
 * Automated saving to database (update button is the current "feature")
