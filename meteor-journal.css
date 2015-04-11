@@ -1,0 +1,89 @@
+body {
+    font-family: sans-serif;
+    background-color: #E9E9E9;
+    /*background-image: linear-gradient(to bottom, #315481, #918e82 100%);*/
+    background-attachment: fixed;
+
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    padding: 0;
+    margin: 0;
+
+    font-size: 14px;
+
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+
+    cursor: default;
+}
+
+header {
+    text-align: center;
+}
+
+.container {
+    margin: 0 auto;
+    max-width: 900px;
+}
+
+.btn {
+    cursor: pointer;
+}
+
+#user-choice {
+    margin: 0 auto;
+    text-align: center;
+    background-color: #292929;
+    padding: 20px;
+}
+
+#user-choice button {
+    width: 100px;
+    height: 50px;
+    margin: 0 30px;
+}
+
+#epiceditor {
+    display: none;
+    height: 500px;
+}
+
+#epiceditor-view-entries {
+    display: none;
+    height: 500px;
+}
+
+#recent-entries {
+    padding: 14px;
+    background-color: #e9e9e9;
+    border-left: 4px solid #292929;
+    border-right: 4px solid #292929;
+    border-bottom: 4px solid #292929;
+}
+
+.entries-list {
+    padding-left: 20%;
+}
+
+.entries-list li {
+    margin: 14px;
+}
+
+.entries-list span {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.entries-title {
+    text-align: center;
+    margin: 0;
+}
+
+.hide {
+    display: none;
+}

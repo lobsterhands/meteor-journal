@@ -1,0 +1,49 @@
+<head>
+    <title>journal-play</title>
+</head>
+
+<body>
+<div class="container">
+    <header>
+        <h1>Meteor Journal</h1>
+        <p>Work in progress. Currently, the user must use the Update
+            button to write to the database. Automation coming.</p>
+    </header>
+
+    <div id="user-choice">
+        <button class="btn btn-today-entry">{{todayEntry}}</button>
+        <button class="btn btn-view-entries">Prior Entries</button>
+        <button class="btn btn-update">Update</button>
+    </div>
+
+  {{> viewentries}}
+  {{> epiceditor}}
+
+</div>
+</body>
+
+<template name="epiceditor">
+    <div id="epiceditor-wrapper">
+        <div id="epiceditor" class=""></div>
+    </div>
+</template>
+
+<template name="viewentries">
+  {{#if showEntries}}
+      <div id="recent-entries">
+          <h2 class="entries-title">Recent Entries</h2>
+          <ul class="entries-list">
+            {{#each entries}}
+              {{> entry}}
+            {{/each}}
+          </ul>
+      </div>
+  {{/if}}
+    <div id="epiceditor-view-entries"></div>
+</template>
+
+<template name="entry">
+    <li>
+        <span class="text">{{title}}</span>
+    </li>
+</template>
