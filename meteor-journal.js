@@ -4,7 +4,7 @@
 
 // @lyle there is probably a better way of dealing with that
 
-Entries = new Mongo.Collection('entries');
+var Entries = new Mongo.Collection('entries');
 
 if (Meteor.isClient) {
 
