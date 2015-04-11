@@ -2,8 +2,6 @@
 
 ##About
 
-**Work in progress**
-
 This is a journal made with [Meteor](https://www.meteor.com/) and
 [EpicEditor](http://epiceditor.com/).
 
