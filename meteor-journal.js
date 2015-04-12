@@ -5,6 +5,8 @@
 // @lyle there is probably a better way of dealing with that
 
 var Entries = new Mongo.Collection('entries');
+// @lyle on the live demo, the window is loading before the Entries database
+// is able to be read. Is there an event triggered when connection is ready?
 
 if (Meteor.isClient) {
 
@@ -24,7 +26,7 @@ if (Meteor.isClient) {
   if (monthFileName < 10) {
     monthFileName = '0' + monthFileName;
   }
-  var dateStringFileName = year + monthFileName + dayFileName;
+  var dateFileName = year + monthFileName + dayFileName;
 
   var editor;
   var currentJournalEntryDate;
@@ -54,15 +56,15 @@ if (Meteor.isClient) {
       if (Session.get('editor-loaded')) {
         var newContent = editor.exportFile(null, null);
         // (null filename, null type))
-        if (Entries.findOne( { title: dateStringFileName } )) {
-          var newEntryId = Entries.findOne({ title: dateStringFileName});
+        if (Entries.findOne( { title: dateFileName } )) {
+          var newEntryId = Entries.findOne({ title: dateFileName});
           Entries.update({_id:newEntryId._id}, {$set: {text: newContent}});
-          //console.log('updating ' + dateStringFileName);
+          //console.log('updating ' + dateFileName);
         } else {
           Entries.insert({
-            title: dateStringFileName, text: newContent, createdAt: new Date()
+            title: dateFileName, text: newContent, createdAt: new Date()
           });
-            //console.log('inserting ' + dateStringFileName);
+            //console.log('inserting ' + dateFileName);
         }
       }
 
@@ -86,20 +88,26 @@ if (Meteor.isClient) {
       }
 
       // Set default content for today's journal entry
-      todayDefaultContent = Entries.findOne({title: dateStringFileName}).text || '##' + dateString;
-      //console.log(todayDefaultContent);
+      var getTodayEntry = Entries.findOne( {title: dateFileName });
+      if (getTodayEntry !== undefined) {
+        todayDefaultContent = getTodayEntry.text;
+        //console.log('Entry is found. Default text should read: ' + getTodayEntry.text);
+      } else {
+        todayDefaultContent = '##' + dateString + '\n\n\n';
+        //console.log('Entry is not found. Default text should read: ##' + dateString);
+      }
 
       if (Session.get('new-entry')) {
         var opts = {  // Set up options for editor load args
           container: 'epiceditor',
           textarea: null,
           basePath: '/epiceditor',
-          clientSideStorage: true,
-          localStorageName: dateStringFileName,
+          clientSideStorage: false, // false means the browser will always pull
+          localStorageName: null,     // from the database for info.
           useNativeFullscreen: true,
           parser: marked,
           file: {
-            name: dateStringFileName,
+            name: null,
             defaultContent: todayDefaultContent,
             autoSave: 100
           },
@@ -155,7 +163,7 @@ if (Meteor.isClient) {
         textarea: null,
         basePath: '/epiceditor',
         clientSideStorage: false,
-        localStorageName: currentJournalEntryDate,
+        localStorageName: null,
         useNativeFullscreen: true,
         parser: marked,
         file: {
@@ -205,9 +213,7 @@ if (Meteor.isClient) {
     },
     entries: function() {
       //return Entries.find({}, {sort: {createdAt: -1}, limit: 3});
-      return Entries.find( { title: { $ne: dateStringFileName}}, {sort: {createdAt: -1}});
-      //return Entries.find( { }, {sort: {createdAt: -1}});
-
+      return Entries.find( { title: { $ne: dateFileName}}, {sort: {createdAt: -1}});
     }
 
   });

@@ -6,11 +6,12 @@
 <div class="container">
     <header>
         <h1>Meteor Journal</h1>
-        <p>Work in progress. Currently, the user must use the Update
+        <p>Work in progress. Currently, the user must use the
+            <strong>Update</strong>
             button to write to the database. Automation coming.</p>
-        <p>Current issues: Current date button is sometimes not able to load
-            the text of (something that should not be) undefined. Several
-            clicks fixes it for now.</p>
+        <p>Current issues: If the Current Date button is used too soon after
+            window load, it is unable to read from the database. Waiting 5
+            seconds before clicking the buttons works for now.</p>
     </header>
 
     <div id="user-choice">
