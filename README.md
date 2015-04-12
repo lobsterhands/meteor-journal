@@ -12,3 +12,4 @@ View the demo [here](http://meteorjournal.meteor.com/).
 ###Coming features
 * Login (user will see only their journal entries)
 * Automated saving to database (update button is the current "feature")
+* Search by string
