@@ -32,15 +32,19 @@ if (Meteor.isClient) {
   var todayDefaultContent;
 
   function unloadEditor() {
-    editor.unload();
-    document.getElementById('epiceditor').style.display = 'none';
-    Session.set('editor-loaded', false);
+    if (Session.get('editor-loaded')) {
+      editor.unload();
+      document.getElementById('epiceditor').style.display = 'none';
+      Session.set('editor-loaded', false);
+    }
   }
 
   function unloadViewEntryEditor() {
-    editor2.unload();
-    document.getElementById('epiceditor-view-entries').style.display = 'none';
-    Session.set('editor2-loaded', false);
+    if (Session.get('editor2-loaded')) {
+      editor2.unload();
+      document.getElementById('epiceditor-view-entries').style.display = 'none';
+      Session.set('editor2-loaded', false);
+    }
   }
 
   // BODY TEMPLATE
@@ -53,10 +57,12 @@ if (Meteor.isClient) {
         if (Entries.findOne( { title: dateStringFileName } )) {
           var newEntryId = Entries.findOne({ title: dateStringFileName});
           Entries.update({_id:newEntryId._id}, {$set: {text: newContent}});
+          //console.log('updating ' + dateStringFileName);
         } else {
           Entries.insert({
             title: dateStringFileName, text: newContent, createdAt: new Date()
           });
+            //console.log('inserting ' + dateStringFileName);
         }
       }
 
@@ -80,11 +86,8 @@ if (Meteor.isClient) {
       }
 
       // Set default content for today's journal entry
-      if (Entries.findOne( { title: dateStringFileName } )) {
-        todayDefaultContent = Entries.findOne({title: dateStringFileName}).text;
-      } else {
-        todayDefaultContent = '##' + dateString;
-      }
+      todayDefaultContent = Entries.findOne({title: dateStringFileName}).text || '##' + dateString;
+      //console.log(todayDefaultContent);
 
       if (Session.get('new-entry')) {
         var opts = {  // Set up options for editor load args
@@ -203,6 +206,8 @@ if (Meteor.isClient) {
     entries: function() {
       //return Entries.find({}, {sort: {createdAt: -1}, limit: 3});
       return Entries.find( { title: { $ne: dateStringFileName}}, {sort: {createdAt: -1}});
+      //return Entries.find( { }, {sort: {createdAt: -1}});
+
     }
 
   });
