@@ -7,7 +7,7 @@ This is a journal made with [Meteor](https://www.meteor.com/) and
 
 ##Demo
 
-View the demo [here](http://meteorjournal.meteor.com/)
+View the demo [here](http://meteorjournal.meteor.com/).
 
 ###Coming features
 * Login (user will see only their journal entries)
