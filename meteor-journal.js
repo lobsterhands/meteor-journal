@@ -1,18 +1,50 @@
-// Because this uses local storage temporarily, any changes made on one browser
-// will not immediately be updated on another browser, though the database
-// has been updated. If using more than one browser, be sure to clear local content
-
-// @lyle there is probably a better way of dealing with that
-
 var Entries = new Mongo.Collection('entries');
 // @lyle on the live demo, the window is loading before the Entries database
 // is able to be read. Is there an event triggered when connection is ready?
 
 if (Meteor.isClient) {
 
+  var newEditorOptions = function( divId, loadText ) {
+    return opts = {
+      container: divId,
+      textarea: null,
+      basePath: '/epiceditor',
+      clientSideStorage: false, // false means browser pulls text from database
+      localStorageName: null,
+      useNativeFullscreen: true,
+      parser: marked,
+      file: {
+        name: null,
+        defaultContent: loadText,
+        autoSave: 100
+      },
+      theme: {
+        base: '/themes/base/epiceditor.css',
+        preview: '/themes/preview/github.css',
+        editor: '/themes/editor/epic-dark.css'
+      },
+      button: {
+        preview: true,
+        fullscreen: true,
+        bar: "auto"
+      },
+      focusOnLoad: false,
+      shortcut: {
+        modifier: 18,
+        fullscreen: 70,
+        preview: 80
+      },
+      string: {
+        togglePreview: 'Toggle Preview Mode',
+        toggleEdit: 'Toggle Edit Mode',
+        toggleFullscreen: 'Enter Fullscreen'
+      },
+      autogrow: false
+    };
+  };
+
   var monthNames = ["January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
+    "July", "August", "September", "October", "November", "December"];
   var date = new Date();
   var year = date.getFullYear().toString();
   var monthName = monthNames[date.getMonth()];
@@ -26,69 +58,45 @@ if (Meteor.isClient) {
   if (monthFileName < 10) {
     monthFileName = '0' + monthFileName;
   }
-  var dateFileName = year + monthFileName + dayFileName;
 
-  var editor;
-  var currentJournalEntryDate;
-  var editor2;
+  // yyyymmdd
+  var currentDate = year + monthFileName + dayFileName;
+
+  var todayEditor;
   var todayDefaultContent;
+  var priorEntryEditor;
+  var priorEntryDate;   // Usage: get text from this db date search
+
 
   function unloadEditor() {
-    if (Session.get('editor-loaded')) {
-      editor.unload();
+    if (Session.get('todayEditor-loaded')) {
+      todayEditor.unload();
       document.getElementById('epiceditor').style.display = 'none';
-      Session.set('editor-loaded', false);
+      Session.set('todayEditor-loaded', false);
     }
   }
 
   function unloadViewEntryEditor() {
-    if (Session.get('editor2-loaded')) {
-      editor2.unload();
+    if (Session.get('priorEntryEditor-loaded')) {
+      priorEntryEditor.unload();
       document.getElementById('epiceditor-view-entries').style.display = 'none';
-      Session.set('editor2-loaded', false);
+      Session.set('priorEntryEditor-loaded', false);
     }
   }
 
   // BODY TEMPLATE
   Template.body.events({
-    'click .btn-update': function () {
-
-      if (Session.get('editor-loaded')) {
-        var newContent = editor.exportFile(null, null);
-        // (null filename, null type))
-        if (Entries.findOne( { title: dateFileName } )) {
-          var newEntryId = Entries.findOne({ title: dateFileName});
-          Entries.update({_id:newEntryId._id}, {$set: {text: newContent}});
-          //console.log('updating ' + dateFileName);
-        } else {
-          Entries.insert({
-            title: dateFileName, text: newContent, createdAt: new Date()
-          });
-            //console.log('inserting ' + dateFileName);
-        }
-      }
-
-      if (Session.get('editor2-loaded')) {
-        var newContentEditor2 = editor2.exportFile(null, null);
-        var entryId = Entries.findOne({ title: currentJournalEntryDate});
-        Entries.update({_id:entryId._id}, {$set: {text: newContentEditor2}});
-      }
-    },
-
-    'click .btn-view-entries': function() {
-      Session.set('view-entries', !Session.get('view-entries'));
-    },
 
     'click .btn-today-entry': function() {
       Session.set('new-entry', !Session.get('new-entry'));
 
-      if (Session.get('editor2-loaded')) {
+      if (Session.get('priorEntryEditor-loaded')) {
         unloadViewEntryEditor();
         Session.set('view-entries', false);
       }
 
       // Set default content for today's journal entry
-      var getTodayEntry = Entries.findOne( {title: dateFileName });
+      var getTodayEntry = Entries.findOne( {title: currentDate });
       if (getTodayEntry !== undefined) {
         todayDefaultContent = getTodayEntry.text;
         //console.log('Entry is found. Default text should read: ' + getTodayEntry.text);
@@ -98,52 +106,44 @@ if (Meteor.isClient) {
       }
 
       if (Session.get('new-entry')) {
-        var opts = {  // Set up options for editor load args
-          container: 'epiceditor',
-          textarea: null,
-          basePath: '/epiceditor',
-          clientSideStorage: false, // false means the browser will always pull
-          localStorageName: null,     // from the database for info.
-          useNativeFullscreen: true,
-          parser: marked,
-          file: {
-            name: null,
-            defaultContent: todayDefaultContent,
-            autoSave: 100
-          },
-          theme: {
-            base: '/themes/base/epiceditor.css',
-            preview: '/themes/preview/github.css',
-            editor: '/themes/editor/epic-dark.css'
-          },
-          button: {
-            preview: true,
-            fullscreen: true,
-            bar: "auto"
-          },
-          focusOnLoad: false,
-          shortcut: {
-            modifier: 18,
-            fullscreen: 70,
-            preview: 80
-          },
-          string: {
-            togglePreview: 'Toggle Preview Mode',
-            toggleEdit: 'Toggle Edit Mode',
-            toggleFullscreen: 'Enter Fullscreen'
-          },
-          autogrow: false
-        };
-
-        // Display the editor div and load the editor using options set above
+        var editorOptions = newEditorOptions('epiceditor', todayDefaultContent);
+        // Display the todayEditor div and load the todayEditor using options set above
         document.getElementById('epiceditor').style.display = 'block';
-        editor = new EpicEditor(opts).load();
-        Session.set('editor-loaded', true);
-
+        todayEditor = new EpicEditor(editorOptions).load();
+        Session.set('todayEditor-loaded', true);
       } else {
         unloadEditor();
       }
+    },
+
+    'click .btn-view-entries': function() {
+      Session.set('view-entries', !Session.get('view-entries'));
+    },
+
+    'click .btn-update': function () {
+
+      if (Session.get('todayEditor-loaded')) {
+
+        // Don't create a (filename, filetype); just get the content
+        var newContent = todayEditor.exportFile(null, null);
+
+        if (Entries.findOne( { title: currentDate } )) {
+          var newEntryId = Entries.findOne({ title: currentDate});
+          Entries.update({_id:newEntryId._id}, {$set: {text: newContent}});
+        } else {
+          Entries.insert({
+            title: currentDate, text: newContent, createdAt: new Date()
+          });
+        }
+      }
+
+      if (Session.get('priorEntryEditor-loaded')) {
+        var newContentEditor2 = priorEntryEditor.exportFile(null, null);
+        var entryId = Entries.findOne({ title: priorEntryDate});
+        Entries.update({_id:entryId._id}, {$set: {text: newContentEditor2}});
+      }
     }
+
   });
 
   Template.body.helpers({
@@ -155,49 +155,12 @@ if (Meteor.isClient) {
   Template.viewentries.events({
     'click span': function (event) {
 
-      currentJournalEntryDate = event.target.textContent;
-      var entryText = Entries.findOne({title: currentJournalEntryDate}).text;
-
-      var opts2 = {
-        container: 'epiceditor-view-entries',
-        textarea: null,
-        basePath: '/epiceditor',
-        clientSideStorage: false,
-        localStorageName: null,
-        useNativeFullscreen: true,
-        parser: marked,
-        file: {
-          name: null,
-          defaultContent: entryText,
-          autoSave: 100
-        },
-        theme: {
-          base: '/themes/base/epiceditor.css',
-          preview: '/themes/preview/github.css',
-          editor: '/themes/editor/epic-dark.css'
-        },
-        button: {
-          preview: true,
-          fullscreen: true,
-          bar: "auto"
-        },
-        focusOnLoad: false,
-        shortcut: {
-          modifier: 18,
-          fullscreen: 70,
-          preview: 80
-        },
-        string: {
-          togglePreview: 'Toggle Preview Mode',
-          toggleEdit: 'Toggle Edit Mode',
-          toggleFullscreen: 'Enter Fullscreen'
-        },
-        autogrow: false
-      };
-
+      priorEntryDate = event.target.textContent;
+      var entryText = Entries.findOne({title: priorEntryDate}).text;
+      var editor2Options = newEditorOptions('epiceditor-view-entries', entryText);
       document.getElementById('epiceditor-view-entries').style.display = 'block';
-      editor2 = new EpicEditor(opts2).load();
-      Session.set('editor2-loaded', true);
+      priorEntryEditor = new EpicEditor(editor2Options).load();
+      Session.set('priorEntryEditor-loaded', true);
 
       if (Session.get('new-entry')) {
         unloadEditor();
@@ -213,15 +176,13 @@ if (Meteor.isClient) {
     },
     entries: function() {
       //return Entries.find({}, {sort: {createdAt: -1}, limit: 3});
-      return Entries.find( { title: { $ne: dateFileName}}, {sort: {createdAt: -1}});
+      // @Lyle Add multiple divs, a div limit and "pagination" for
+      // the prior entries archive.
+      return Entries.find( { title: { $ne: currentDate}}, {sort: {createdAt: -1}});
     }
 
   });
 }
-
-Meteor.methods({
-
-});
 
 if (Meteor.isServer) {
   Meteor.startup(function () {

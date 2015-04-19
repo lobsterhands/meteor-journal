@@ -165,7 +165,7 @@
   }
 
   function _setText(el, content) {
-    // Don't convert lt/gt characters as HTML when viewing the editor window
+    // Don't convert lt/gt characters as HTML when viewing the todayEditor window
     // TODO: Write a test to catch regressions for this
     content = content.replace(/</g, '&lt;');
     content = content.replace(/>/g, '&gt;');
@@ -337,7 +337,7 @@
           }
         , theme: { base: '/themes/base/epiceditor.css'
           , preview: '/themes/preview/github.css'
-          , editor: '/themes/editor/epic-dark.css'
+          , editor: '/themes/todayEditor/epic-dark.css'
           }
         , focusOnLoad: false
         , shortcut: { modifier: 18 // alt keycode
@@ -389,7 +389,7 @@
     if (!self.settings.theme.preview.match(/^https?:\/\//)) {
       self.settings.theme.preview = self.settings.basePath + self.settings.theme.preview;
     }
-    // editor theme
+    // todayEditor theme
     if (!self.settings.theme.editor.match(/^https?:\/\//)) {
       self.settings.theme.editor = self.settings.basePath + self.settings.theme.editor;
     }
@@ -547,12 +547,12 @@
 
     callback = callback || function () {};
 
-    // The editor HTML
+    // The todayEditor HTML
     // TODO: edit-mode class should be dynamically added
     _HtmlTemplates = {
       // This is wrapping iframe element. It contains the other two iframes and the utilbar
       chrome:   '<div id="epiceditor-wrapper" class="epiceditor-edit-mode">' +
-                  '<iframe frameborder="0" id="epiceditor-editor-frame"></iframe>' +
+                  '<iframe frameborder="0" id="epiceditor-todayEditor-frame"></iframe>' +
                   '<iframe frameborder="0" id="epiceditor-previewer-frame"></iframe>' +
                   '<div id="epiceditor-utilbar">' +
                     (self._previewEnabled ? '<button title="' + this.settings.string.togglePreview + '" class="epiceditor-toggle-btn epiceditor-toggle-preview-btn"></button> ' : '') +
@@ -566,7 +566,7 @@
     , editor: '<!doctype HTML>'
     };
 
-    // Write an iframe and then select it for the editor
+    // Write an iframe and then select it for the todayEditor
     self.element.innerHTML = '<iframe scrolling="no" frameborder="0" id= "' + self._instanceId + '"></iframe>';
 
     // Because browsers add things like invisible padding and margins and stuff
@@ -587,10 +587,10 @@
     self.iframe.write(_HtmlTemplates.chrome);
 
     // Now that we got the innards of the iframe, we can grab the other iframes
-    self.editorIframe = self.iframe.getElementById('epiceditor-editor-frame')
+    self.editorIframe = self.iframe.getElementById('epiceditor-todayEditor-frame')
     self.previewerIframe = self.iframe.getElementById('epiceditor-previewer-frame');
 
-    // Setup the editor iframe
+    // Setup the todayEditor iframe
     self.editorIframeDocument = _getIframeInnards(self.editorIframe);
     self.editorIframeDocument.open();
     // Need something for... you guessed it, Firefox
@@ -620,14 +620,14 @@
     // Insert Previewer Stylesheet
     _insertCSSLink(self.settings.theme.preview, self.previewerIframeDocument, 'theme');
 
-    // Add a relative style to the overall wrapper to keep CSS relative to the editor
+    // Add a relative style to the overall wrapper to keep CSS relative to the todayEditor
     self.iframe.getElementById('epiceditor-wrapper').style.position = 'relative';
 
     // Set the position to relative so we hide them with left: -999999px
     self.editorIframe.style.position = 'absolute';
     self.previewerIframe.style.position = 'absolute';
 
-    // Now grab the editor and previewer for later use
+    // Now grab the todayEditor and previewer for later use
     self.editor = self.editorIframeDocument.body;
     self.previewer = self.previewerIframeDocument.getElementById('epiceditor-preview');
    
@@ -639,7 +639,7 @@
     // Should actually check what mode it's in!
     self.previewerIframe.style.left = '-999999px';
 
-    // Keep long lines from being longer than the editor
+    // Keep long lines from being longer than the todayEditor
     this.editorIframeDocument.body.style.wordWrap = 'break-word';
 
     // FIXME figure out why it needs +2 px
@@ -724,8 +724,8 @@
         windowOuterHeight = window.innerHeight;
       }
 
-      // This MUST come first because the editor is 100% width so if we change the width of the iframe or wrapper
-      // the editor's width wont be the same as before
+      // This MUST come first because the todayEditor is 100% width so if we change the width of the iframe or wrapper
+      // the todayEditor's width wont be the same as before
       _elementStates.editorIframe = _saveStyleState(self.editorIframe, 'save', {
         'width': windowOuterWidth / 2 + 'px'
       , 'height': windowOuterHeight + 'px'
@@ -800,7 +800,7 @@
 
       utilBtns.style.visibility = 'visible';
 
-      // Put the editor back in the right state
+      // Put the todayEditor back in the right state
       // TODO: This is ugly... how do we make this nicer?
       // setting fullscreen to false here prevents the
       // native fs callback from calling this function again
@@ -861,7 +861,7 @@
       }
     });
 
-    // Sets up the NATIVE fullscreen editor/previewer for WebKit
+    // Sets up the NATIVE fullscreen todayEditor/previewer for WebKit
     if (nativeFsWebkit) {
       document.addEventListener('webkitfullscreenchange', function () {
         if (!document.webkitIsFullScreen && self._eeState.fullscreen) {
@@ -937,7 +937,7 @@
           self.edit();
         }
       }
-      // Check for alt+f - default shortcut to make editor fullscreen
+      // Check for alt+f - default shortcut to make todayEditor fullscreen
       if (isMod === true && e.keyCode == self.settings.shortcut.fullscreen && self._fullscreenEnabled) {
         e.preventDefault();
         self._goFullscreen(fsElement);
@@ -1058,7 +1058,7 @@
         , 'height': window.innerHeight + 'px'
         });
       }
-      // Makes the editor support fluid width when not in fullscreen mode
+      // Makes the todayEditor support fluid width when not in fullscreen mode
       else if (!self.is('fullscreen')) {
         self.reflow();
       }
@@ -1089,7 +1089,7 @@
 
       //for if autosave is disabled or very slow
       ['keydown', 'keyup', 'paste', 'cut'].forEach(function (ev) {
-        self.getElement('editor').addEventListener(ev, boundAutogrow);
+        self.getElement('todayEditor').addEventListener(ev, boundAutogrow);
       });
       
       self.on('__update', boundAutogrow);
@@ -1117,7 +1117,7 @@
       , _syncTextarea;
 
     // Even if autoSave is false, we want to make sure to keep the textarea synced
-    // with the editor's content. One bad thing about this tho is that we're
+    // with the todayEditor's content. One bad thing about this tho is that we're
     // creating two timers now in some configurations. We keep the textarea synced
     // by saving and opening the textarea content from the draft file storage.
     self._textareaSaveTimer = window.setInterval(function () {
@@ -1145,10 +1145,10 @@
     // On page load, if there's content in the textarea that means one of two
     // different things:
     //
-    // 1. The editor didn't load and the user was writing in the textarea and
+    // 1. The todayEditor didn't load and the user was writing in the textarea and
     // now he refreshed the page or the JS loaded and the textarea now has
     // content. If this is the case the user probably expects his content is
-    // moved into the editor and not lose what he typed.
+    // moved into the todayEditor and not lose what he typed.
     //
     // 2. The developer put content in the textarea from some server side
     // code. In this case, the textarea will take precedence.
@@ -1172,7 +1172,7 @@
   }
 
   /**
-   * Will NOT focus the editor if the editor is still starting up AND
+   * Will NOT focus the todayEditor if the todayEditor is still starting up AND
    * focusOnLoad is set to false. This allows you to place this in code that
    * gets fired during .load() without worrying about it overriding the user's
    * option. For example use cases see preview() and edit().
@@ -1180,7 +1180,7 @@
    */
 
   // Prevent focus when the user sets focusOnLoad to false by checking if the
-  // editor is starting up AND if focusOnLoad is true
+  // todayEditor is starting up AND if focusOnLoad is true
   EpicEditor.prototype._focusExceptOnLoad = function () {
     var self = this;
     if ((self._eeState.startup && self.settings.focusOnLoad) || !self._eeState.startup) {
@@ -1189,12 +1189,12 @@
   }
 
   /**
-   * Will remove the editor, but not offline files
+   * Will remove the todayEditor, but not offline files
    * @returns {object} EpicEditor will be returned
    */
   EpicEditor.prototype.unload = function (callback) {
 
-    // Make sure the editor isn't already unloaded.
+    // Make sure the todayEditor isn't already unloaded.
     if (this.is('unloaded')) {
       throw new Error('Editor isn\'t loaded');
     }
@@ -1225,8 +1225,8 @@
   }
 
   /**
-   * reflow allows you to dynamically re-fit the editor in the parent without
-   * having to unload and then reload the editor again.
+   * reflow allows you to dynamically re-fit the todayEditor in the parent without
+   * having to unload and then reload the todayEditor again.
    *
    * reflow will also emit a `reflow` event and will return the new dimensions.
    * If it's called without params it'll return the new width and height and if
@@ -1303,7 +1303,7 @@
     // Add the generated draft HTML into the previewer
     self.previewer.innerHTML = self.exportFile(null, 'html', true);
 
-    // Hide the editor and display the previewer
+    // Hide the todayEditor and display the previewer
     if (!self.is('fullscreen')) {
       self.editorIframe.style.left = '-999999px';
       self.previewerIframe.style.left = '';
@@ -1317,7 +1317,7 @@
   }
 
   /**
-   * Helper to focus on the editor iframe. Will figure out which iframe to
+   * Helper to focus on the todayEditor iframe. Will figure out which iframe to
    * focus on based on which one is active and will handle the cross browser
    * issues with focusing on the iframe vs the document body.
    * @returns {object} EpicEditor will be returned
@@ -1337,7 +1337,7 @@
   }
 
   /**
-   * Puts the editor into fullscreen mode
+   * Puts the todayEditor into fullscreen mode
    * @returns {object} EpicEditor will be returned
    */
   EpicEditor.prototype.enterFullscreen = function () {
@@ -1357,7 +1357,7 @@
   }
 
   /**
-   * Hides the preview and shows the editor again
+   * Hides the preview and shows the todayEditor again
    * @returns {object} EpicEditor will be returned
    */
   EpicEditor.prototype.edit = function () {
@@ -1374,7 +1374,7 @@
 
   /**
    * Grabs a specificed HTML node. Use it as a shortcut to getting the iframe contents
-   * @param   {String} name The name of the node (can be document, body, editor, previewer, or wrapper)
+   * @param   {String} name The name of the node (can be document, body, todayEditor, previewer, or wrapper)
    * @returns {Object|Null}
    */
   EpicEditor.prototype.getElement = function (name) {
@@ -1388,7 +1388,7 @@
     , "previewerIframe": this.previewerIframe
     }
 
-    // Check that the given string is a possible option and verify the editor isn't unloaded
+    // Check that the given string is a possible option and verify the todayEditor isn't unloaded
     // without this, you'd be given a reference to an object that no longer exists in the DOM
     if (!available[name] || this.is('unloaded')) {
       return null;
@@ -1399,7 +1399,7 @@
   }
 
   /**
-   * Returns a boolean of each "state" of the editor. For example "editor.is('loaded')" // returns true/false
+   * Returns a boolean of each "state" of the todayEditor. For example "todayEditor.is('loaded')" // returns true/false
    * @param {String} what the state you want to check for
    * @returns {Boolean}
    */
@@ -1759,7 +1759,7 @@
   }
 
   /**
-   * Handles autogrowing the editor
+   * Handles autogrowing the todayEditor
    */
   EpicEditor.prototype._autogrow = function () {
     var editorHeight
@@ -1773,7 +1773,7 @@
     //autogrow in fullscreen is nonsensical
     if (!this.is('fullscreen')) {
       if (this.is('edit')) {
-        el = this.getElement('editor').documentElement;
+        el = this.getElement('todayEditor').documentElement;
       }
       else {
         el = this.getElement('previewer').documentElement;
@@ -1834,7 +1834,7 @@
       setting = 'auto';
     }
     setting = forceSetting || setting;
-    this.getElement('editor').documentElement.style.overflow = setting;
+    this.getElement('todayEditor').documentElement.style.overflow = setting;
     this.getElement('previewer').documentElement.style.overflow = setting;
   }
 
